@@ -1,49 +1,15 @@
-FROM node:18.19.1-alpine AS builder
+FROM ghcr.io/tomquist/hame-relay-addon:latest
 
-WORKDIR /build
-
-# Copy package files
-COPY package*.json ./
-COPY tsconfig.json ./
-
-# Install all dependencies (including devDependencies)
-RUN npm ci
-
-# Copy source code
-COPY src/ ./src/
-
-# Copy certificates during build
-COPY certs/ca.crt certs/client.crt certs/client.key ./src/certs/
-
-# Build the application
-RUN npm run build
-
-# Install production dependencies
-RUN npm ci --only=production
-
-# Runtime stage
-FROM node:20-alpine
-
+# Optional: Arbeitsverzeichnis
 WORKDIR /app
 
-# Install Node.js (already included in base image)
+# Falls dein Code noch TS ist, musst du auch `tsconfig.json`, `package*.json` und `src/` kopieren
+# und den Build nochmal anstoßen
 
-# Copy package.json for reference
-COPY package.json ./
+# Falls dein Code bereits JS (z. B. `dist/`) ist:
+COPY dist/ ./dist/
 
-# Copy production dependencies and built files from builder
-COPY --from=builder /build/node_modules ./node_modules
-COPY --from=builder /build/dist/ ./dist/
-
-# Copy embedded certificates
-COPY --from=builder /build/src/certs/ ./certs/
-
-# Create config directory
-RUN mkdir -p /app/config
-
-# Set environment variables
-ENV CONFIG_PATH=/app/config/config.json \
-    CERT_PATH=/app/certs
-
-# Run the application
-CMD ["node", "dist/forwarder.js"]
+# Falls du aus TypeScript baust:
+# COPY src/ ./src/
+# COPY tsconfig.json package*.json ./
+# RUN npm ci && npm run build
