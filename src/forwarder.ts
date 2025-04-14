@@ -5,7 +5,7 @@ import {join} from 'path';
 import {createHash} from 'crypto';
 import fetch from 'node-fetch';
 
-const deviceGenerations = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] as const;
+const deviceGenerations = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 25] as const;
 type DeviceGen = typeof deviceGenerations[number];
 const deviceTypes = ["A", "B", "D", "E", "F", "G", "J", "K"] as const;
 type DeviceType = typeof deviceTypes[number];
