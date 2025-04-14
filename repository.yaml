@@ -1,6 +1,6 @@
 name: "Hame Relay Repository for HMG-25 Marstek Venus C"
 url: "https://github.com/kleimj1/hame-relay"
 maintainer: "Jochen Kleimann <kleimj1@users.noreply.github.com>"
-addons:
-  hame_relay:
-    repository: hassio-addon
+#addons:
+#  hame_relay:
+#    repository: hassio-addon
