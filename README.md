@@ -118,7 +118,7 @@ docker compose up -d
 
 1. Add this repository to your Home Assistant add-on store:
    ```
-   https://github.com/tomquist/hame-relay
+   https://github.com/kleimj1/hame-relay
    ```
 
 2. Install the "Hame Relay" add-on
@@ -146,7 +146,7 @@ devices:
     type: "HMA-1"
   - device_id: "0123456789abcdef01234567"
     mac: "01234567890a"
-    type: "HMA-1"
+    type: "HMG-25"
 ```
 
 ### MQTT Configuration
