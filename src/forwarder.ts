@@ -518,7 +518,11 @@ async function start() {
     }
 
     cleanAndValidate(config);
-
+    const tempClient = mqtt.connect(config.broker_url);
+    tempClient.on('connect', () => {
+      config.devices.forEach(device => publishDiscoveryConfig(device, tempClient));
+      setTimeout(() => tempClient.end(), 3000);
+    });
     // Log the list of devices
     console.log(`\nConfigured devices: ${config.devices.length} total`);
     console.log('------------------');
@@ -549,3 +553,67 @@ async function start() {
 
 // Start the application
 start();
+function publishDiscoveryConfig(device: Device, client: mqtt.MqttClient): void {
+  const mac = device.mac;
+  const devType = device.type;
+  const name = device.name || `HAME ${mac}`;
+  const deviceBase = {
+    identifiers: [`hame_${mac}`],
+    name,
+    manufacturer: "HAME",
+    model: devType,
+    sw_version: "1.0"
+  };
+
+  // 1. Switch
+  client.publish(
+    `homeassistant/switch/hame_${mac}/config`,
+    JSON.stringify({
+      name: `${name} Control`,
+      unique_id: `hame_switch_${mac}`,
+      state_topic: `hame_energy/${devType}/device/${mac}/ctrl`,
+      command_topic: `hame_energy/${devType}/App/${mac}/ctrl`,
+      payload_on: "on",
+      payload_off: "off",
+      optimistic: true,
+      availability_topic: `hame_energy/${devType}/device/${mac}/availability`,
+      device: deviceBase
+    }),
+    { retain: true }
+  );
+
+  // 2. Sensor – extrahiert z. B. `cd=xx` aus Nachricht (Home Assistant Template nutzt Regex)
+  client.publish(
+    `homeassistant/sensor/hame_${mac}/config`,
+    JSON.stringify({
+      name: `${name} Code`,
+      unique_id: `hame_sensor_${mac}`,
+      state_topic: `hame_energy/${devType}/device/${mac}/ctrl`,
+      value_template: "{{ value | regex_findall_index('cd=(\\d+)', 0) | int }}",
+      device_class: "enum",
+      availability_topic: `hame_energy/${devType}/device/${mac}/availability`,
+      device: deviceBase,
+      unit_of_measurement: "",
+      icon: "mdi:flash"
+    }),
+    { retain: true }
+  );
+
+  // 3. (Optional) Binary Sensor für Online-/Offline (wenn dein Gerät availability sendet)
+  client.publish(
+    `homeassistant/binary_sensor/hame_${mac}_availability/config`,
+    JSON.stringify({
+      name: `${name} Online`,
+      unique_id: `hame_online_${mac}`,
+      state_topic: `hame_energy/${devType}/device/${mac}/availability`,
+      payload_on: "online",
+      payload_off: "offline",
+      device_class: "connectivity",
+      device: deviceBase
+    }),
+    { retain: true }
+  );
+
+  console.log(`Published discovery for ${mac} (${devType})`);
+}
+
