@@ -3,6 +3,7 @@ version: "1.1.7"
 slug: "hame-relay"
 description: "Connect Marstek Venus C storage to Home Assistant while keeping mobile app functionality"
 url: "https://github.com/kleimj1/hame-relay"
+image: "kleimj1/hame-relay-addon"
 arch:
   - armv7
   - aarch64
