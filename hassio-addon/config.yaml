@@ -1,8 +1,8 @@
 name: "Hame Relay"
 version: "1.1.6"
 slug: "hame_relay"
-description: "Connect B2500 storage to Home Assistant while keeping mobile app functionality"
-url: "https://github.com/tomquist/hame-relay"
+description: "Connect Marstek Venus C storage to Home Assistant while keeping mobile app functionality"
+url: "https://github.com/kleimj1/hame-relay"
 image: "ghcr.io/tomquist/hame-relay-addon"
 arch:
   - armv7
@@ -18,7 +18,7 @@ options:
   devices:
     - device_id: "24-digit-device-id"
       mac: "maccaddresswithoutcolons"
-      type: "HMA-1"
+      type: "HMG-25"
 schema:
   mqtt_uri: str?
   inverse_forwarding: bool?
