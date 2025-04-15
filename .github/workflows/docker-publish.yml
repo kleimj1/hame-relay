@@ -9,6 +9,7 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write  # Required for OIDC token authentication
 
 jobs:
   build:
@@ -43,36 +44,24 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
+          password: ${{ secrets.GHCR_PAT  }}  # Use GITHUB_TOKEN instead of PAT
 
       - name: Extract version from tag
         id: meta
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          VERSION=${VERSION#v}  # Remove 'v' prefix if present
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Build and Push
+      - name: Build and push multi-arch images
         run: |
-          # Build and push arch-specific images first
+          # Build and push all architectures in one command
           docker buildx build \
-            --platform linux/arm64 \
+            --platform linux/arm64,linux/amd64 \
+            -t ghcr.io/kleimj1/hame-relay-addon:${{ steps.meta.outputs.VERSION }} \
+            -t ghcr.io/kleimj1/hame-relay-addon:latest \
             -t ghcr.io/kleimj1/hame-relay-addon/aarch64:${{ steps.meta.outputs.VERSION }} \
-            -f Dockerfile.dev \
-            --push \
-            .
-
-          docker buildx build \
-            --platform linux/amd64 \
             -t ghcr.io/kleimj1/hame-relay-addon/amd64:${{ steps.meta.outputs.VERSION }} \
             -f Dockerfile.dev \
             --push \
             .
-
-          # Then create the multi-arch manifest
-          docker manifest create \
-            ghcr.io/kleimj1/hame-relay-addon:${{ steps.meta.outputs.VERSION }} \
-            --amend ghcr.io/kleimj1/hame-relay-addon/aarch64:${{ steps.meta.outputs.VERSION }} \
-            --amend ghcr.io/kleimj1/hame-relay-addon/amd64:${{ steps.meta.outputs.VERSION }}
-
-          docker manifest push \
-            ghcr.io/kleimj1/hame-relay-addon:${{ steps.meta.outputs.VERSION }}
