@@ -587,48 +587,45 @@ function publishDiscoveryConfig(device: Device, client: mqtt.MqttClient): void {
     device: deviceBase
   };
 
+  const publishOpts = { retain: true };
+
   client.publish(
     `homeassistant/switch/hame_${mac}/config`,
     JSON.stringify(switchPayload),
-    { retain: true },
+    publishOpts,
     (err) => {
-      if (err) {
-        console.error(`Failed to publish switch discovery for ${mac}:`, err);
-      } else {
-        console.log(`Published switch discovery for ${mac}:`, switchPayload);
-      }
+      if (err) console.error(`[MQTT] Error publishing switch config for ${mac}:`, err);
+      else console.log(`[MQTT] Discovery: switch config for ${mac}`);
     }
   );
 
   client.publish(
     `homeassistant/sensor/hame_${mac}/config`,
     JSON.stringify(sensorPayload),
-    { retain: true },
+    publishOpts,
     (err) => {
-      if (err) {
-        console.error(`Failed to publish sensor discovery for ${mac}:`, err);
-      } else {
-        console.log(`Published sensor discovery for ${mac}:`, sensorPayload);
-      }
+      if (err) console.error(`[MQTT] Error publishing sensor config for ${mac}:`, err);
+      else console.log(`[MQTT] Discovery: sensor config for ${mac}`);
     }
   );
 
   client.publish(
     `homeassistant/binary_sensor/hame_${mac}_availability/config`,
     JSON.stringify(onlinePayload),
-    { retain: true },
+    publishOpts,
     (err) => {
-      if (err) {
-        console.error(`Failed to publish availability discovery for ${mac}:`, err);
-      } else {
-        console.log(`Published availability discovery for ${mac}:`, onlinePayload);
-      }
+      if (err) console.error(`[MQTT] Error publishing availability config for ${mac}:`, err);
+      else console.log(`[MQTT] Discovery: availability config for ${mac}`);
     }
   );
-  client.publish(
-    `hame_energy/${device.type}/device/${device.mac}/availability`,
-    'online',
-    { retain: true }
-  );
 
+  client.publish(
+    `hame_energy/${devType}/device/${mac}/availability`,
+    'online',
+    { retain: true },
+    (err) => {
+      if (err) console.error(`[MQTT] Error publishing retained availability for ${mac}:`, err);
+      else console.log(`[MQTT] Published retained availability (online) for ${mac}`);
+    }
+  );
 }
