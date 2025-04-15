@@ -553,55 +553,76 @@ function publishDiscoveryConfig(device: Device, client: mqtt.MqttClient): void {
     sw_version: "1.0"
   };
 
-  // 1. Switch
+  const switchPayload = {
+    name: `${name} Control`,
+    unique_id: `hame_switch_${mac}`,
+    state_topic: `hame_energy/${devType}/device/${mac}/ctrl`,
+    command_topic: `hame_energy/${devType}/App/${mac}/ctrl`,
+    payload_on: "on",
+    payload_off: "off",
+    optimistic: true,
+    availability_topic: `hame_energy/${devType}/device/${mac}/availability`,
+    device: deviceBase
+  };
+
+  const sensorPayload = {
+    name: `${name} Code`,
+    unique_id: `hame_sensor_${mac}`,
+    state_topic: `hame_energy/${devType}/device/${mac}/ctrl`,
+    value_template: "{{ value | regex_findall_index('cd=(\\d+)', 0) | int }}",
+    device_class: "enum",
+    availability_topic: `hame_energy/${devType}/device/${mac}/availability`,
+    device: deviceBase,
+    unit_of_measurement: "",
+    icon: "mdi:flash"
+  };
+
+  const onlinePayload = {
+    name: `${name} Online`,
+    unique_id: `hame_online_${mac}`,
+    state_topic: `hame_energy/${devType}/device/${mac}/availability`,
+    payload_on: "online",
+    payload_off: "offline",
+    device_class: "connectivity",
+    device: deviceBase
+  };
+
   client.publish(
     `homeassistant/switch/hame_${mac}/config`,
-    JSON.stringify({
-      name: `${name} Control`,
-      unique_id: `hame_switch_${mac}`,
-      state_topic: `hame_energy/${devType}/device/${mac}/ctrl`,
-      command_topic: `hame_energy/${devType}/App/${mac}/ctrl`,
-      payload_on: "on",
-      payload_off: "off",
-      optimistic: true,
-      availability_topic: `hame_energy/${devType}/device/${mac}/availability`,
-      device: deviceBase
-    }),
-    { retain: true }
+    JSON.stringify(switchPayload),
+    { retain: true },
+    (err) => {
+      if (err) {
+        console.error(`Failed to publish switch discovery for ${mac}:`, err);
+      } else {
+        console.log(`Published switch discovery for ${mac}:`, switchPayload);
+      }
+    }
   );
 
-  // 2. Sensor – extrahiert z. B. `cd=xx` aus Nachricht (Home Assistant Template nutzt Regex)
   client.publish(
     `homeassistant/sensor/hame_${mac}/config`,
-    JSON.stringify({
-      name: `${name} Code`,
-      unique_id: `hame_sensor_${mac}`,
-      state_topic: `hame_energy/${devType}/device/${mac}/ctrl`,
-      value_template: "{{ value | regex_findall_index('cd=(\\d+)', 0) | int }}",
-      device_class: "enum",
-      availability_topic: `hame_energy/${devType}/device/${mac}/availability`,
-      device: deviceBase,
-      unit_of_measurement: "",
-      icon: "mdi:flash"
-    }),
-    { retain: true }
+    JSON.stringify(sensorPayload),
+    { retain: true },
+    (err) => {
+      if (err) {
+        console.error(`Failed to publish sensor discovery for ${mac}:`, err);
+      } else {
+        console.log(`Published sensor discovery for ${mac}:`, sensorPayload);
+      }
+    }
   );
 
-  // 3. (Optional) Binary Sensor für Online-/Offline (wenn dein Gerät availability sendet)
   client.publish(
     `homeassistant/binary_sensor/hame_${mac}_availability/config`,
-    JSON.stringify({
-      name: `${name} Online`,
-      unique_id: `hame_online_${mac}`,
-      state_topic: `hame_energy/${devType}/device/${mac}/availability`,
-      payload_on: "online",
-      payload_off: "offline",
-      device_class: "connectivity",
-      device: deviceBase
-    }),
-    { retain: true }
+    JSON.stringify(onlinePayload),
+    { retain: true },
+    (err) => {
+      if (err) {
+        console.error(`Failed to publish availability discovery for ${mac}:`, err);
+      } else {
+        console.log(`Published availability discovery for ${mac}:`, onlinePayload);
+      }
+    }
   );
-
-  console.log(`Published discovery for ${mac} (${devType})`);
 }
-
