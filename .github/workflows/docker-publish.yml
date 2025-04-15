@@ -24,6 +24,9 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -45,8 +48,9 @@ jobs:
         with:
           context: .
           file: Dockerfile.dev
-          platforms: linux/arm64
+          platforms: linux/arm64,linux/amd64
           push: true
+          provenance: false  # optional: verhindert attestation-layer
           tags: |
             ghcr.io/kleimj1/hame-relay-addon:${{ steps.meta.outputs.VERSION }}
             ghcr.io/kleimj1/hame-relay-addon:latest
