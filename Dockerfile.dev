@@ -3,13 +3,14 @@ FROM ghcr.io/tomquist/hame-relay-addon:latest
 # Optional: Arbeitsverzeichnis
 WORKDIR /app
 
-# Falls dein Code noch TS ist, musst du auch `tsconfig.json`, `package*.json` und `src/` kopieren
-# und den Build nochmal anstoßen
+FROM node:20-alpine
 
-# Falls dein Code bereits JS (z. B. `dist/`) ist:
-COPY dist/ ./dist/
+WORKDIR /app
 
-# Falls du aus TypeScript baust:
-# COPY src/ ./src/
-# COPY tsconfig.json package*.json ./
-# RUN npm ci && npm run build
+COPY package*.json ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+CMD ["node", "dist/forwarder.js"]
