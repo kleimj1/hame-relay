@@ -1,6 +1,6 @@
 {
   "name": "Hame Relay",
-  "version": "1.2.9",
+  "version": "1.3.0",
   "slug": "hame-relay",
   "description": "Connect Marstek Venus C storage to Home Assistant while keeping mobile app functionality",
   "url": "https://github.com/kleimj1/hame-relay",
