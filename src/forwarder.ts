@@ -625,4 +625,10 @@ function publishDiscoveryConfig(device: Device, client: mqtt.MqttClient): void {
       }
     }
   );
+  client.publish(
+    `hame_energy/${device.type}/device/${device.mac}/availability`,
+    'online',
+    { retain: true }
+  );
+
 }
