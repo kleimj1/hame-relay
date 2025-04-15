@@ -5,9 +5,7 @@ description: "Connect Marstek Venus C storage to Home Assistant while keeping mo
 url: "https://github.com/kleimj1/hame-relay"
 image: "ghcr.io/kleimj1/hame-relay-addon"
 arch:
-  - armv7
   - aarch64
-  - amd64
 init: false
 startup: application
 boot: auto
