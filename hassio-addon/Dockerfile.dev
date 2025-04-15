@@ -1,13 +1,17 @@
-FROM ghcr.io/tomquist/hame-relay-addon:latest
+# Stage 1: Build
+FROM node:20-alpine AS builder
 
-# Optional: Arbeitsverzeichnis
 WORKDIR /app
-
 COPY package*.json ./
 RUN npm ci
-
 COPY . .
 RUN npm run build
 
-CMD ["node", "dist/forwarder.js"]
+# Stage 2: Runtime (dein Basisimage)
+FROM ghcr.io/tomquist/hame-relay-addon:latest
 
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+
+CMD ["node", "dist/forwarder.js"]
