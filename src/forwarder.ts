@@ -459,10 +459,9 @@ class MQTTForwarder {
 
 async function start() {
   try {
-    // Entry point
-    const configPath = process.env.CONFIG_PATH || './config/config.json';
-    // Load and parse config file
-    const config = JSON.parse(readFileSync(configPath, 'utf8')) as Config;
+    // Lade die Konfiguration aus Home Assistant Optionen
+    const configRaw = readFileSync('/data/options.json', 'utf8');
+    const config = JSON.parse(configRaw) as Config;
 
     // Initialize devices array if it doesn't exist
     if (!config.devices) {
@@ -476,39 +475,29 @@ async function start() {
         userDevicesMap.set(device.device_id, device);
       }
     });
-    
+
     // If username and password are provided, fetch device information from API
     if (config.username && config.password) {
       try {
         console.log('Credentials found in config, attempting to fetch devices from API...');
         const apiDevices = await fetchDevicesFromApi(config.username, config.password);
-        
+
         if (apiDevices.length > 0) {
           console.log(`Retrieved ${apiDevices.length} devices from API`);
-          
+
           // Process each API device
           for (const apiDevice of apiDevices) {
             if (userDevicesMap.has(apiDevice.device_id)) {
-              // Device already exists in user config - merge only missing information
               const userDevice = userDevicesMap.get(apiDevice.device_id)!;
-              
-              // Only update fields if they're missing in user config
-              if (!userDevice.type) {
-                userDevice.type = apiDevice.type;
-              }
-              if (!userDevice.name) {
-                userDevice.name = apiDevice.name;
-              }
-              if (!userDevice.mac) {
-                userDevice.mac = apiDevice.mac;
-              }
+              if (!userDevice.type) userDevice.type = apiDevice.type;
+              if (!userDevice.name) userDevice.name = apiDevice.name;
+              if (!userDevice.mac) userDevice.mac = apiDevice.mac;
             } else {
-              // New device from API - add to config
               config.devices.push(apiDevice);
               userDevicesMap.set(apiDevice.device_id, apiDevice);
             }
           }
-          
+
           console.log(`Config now contains ${config.devices.length} devices (${userDevicesMap.size} unique)`);
         }
       } catch (apiError) {
@@ -518,8 +507,12 @@ async function start() {
     }
 
     cleanAndValidate(config);
+    const tempClient = mqtt.connect(config.broker_url);
+    tempClient.on('connect', () => {
+      config.devices.forEach(device => publishDiscoveryConfig(device, tempClient));
+      setTimeout(() => tempClient.end(), 3000);
+    });
 
-    // Log the list of devices
     console.log(`\nConfigured devices: ${config.devices.length} total`);
     console.log('------------------');
     config.devices.forEach((device, index) => {
@@ -535,7 +528,6 @@ async function start() {
 
     const forwarder = new MQTTForwarder(config);
 
-    // Handle application shutdown
     process.on('SIGINT', () => {
       console.log('Shutting down...');
       forwarder.close();
@@ -547,5 +539,4 @@ async function start() {
   }
 }
 
-// Start the application
 start();
