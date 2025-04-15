@@ -3,10 +3,6 @@ FROM ghcr.io/tomquist/hame-relay-addon:latest
 # Optional: Arbeitsverzeichnis
 WORKDIR /app
 
-FROM node:20-alpine
-
-WORKDIR /app
-
 COPY package*.json ./
 RUN npm ci
 
