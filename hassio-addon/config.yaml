@@ -1,30 +1,37 @@
-name: "Hame Relay"
-version: "1.2.9"
-slug: "hame-relay"
-description: "Connect Marstek Venus C storage to Home Assistant while keeping mobile app functionality"
-url: "https://github.com/kleimj1/hame-relay"
-image: "ghcr.io/kleimj1/hame-relay-addon"
-arch:
-  - aarch64
-  - amd64
-init: false
-startup: application
-boot: auto
-services:
-  - mqtt:need
-options:
-  inverse_forwarding: false
-  devices:
-    - device_id: "24-digit-device-id"
-      mac: "maccaddresswithoutcolons"
-      type: "HMG-25"
-schema:
-  mqtt_uri: str?
-  inverse_forwarding: bool?
-  username: str?
-  password: password?
-  devices:
-    - device_id: str
-      mac: str
-      type: str
-      inverse_forwarding: bool?
+{
+  "name": "Hame Relay",
+  "version": "1.2.9",
+  "slug": "hame-relay",
+  "description": "Connect Marstek Venus C storage to Home Assistant while keeping mobile app functionality",
+  "url": "https://github.com/kleimj1/hame-relay",
+  "image": "ghcr.io/kleimj1/hame-relay-addon/{arch}",
+  "arch": ["aarch64", "amd64"],
+  "init": false,
+  "startup": "application",
+  "boot": "auto",
+  "services": ["mqtt:need"],
+  "options": {
+    "inverse_forwarding": false,
+    "devices": [
+      {
+        "device_id": "24-digit-device-id",
+        "mac": "maccaddresswithoutcolons",
+        "type": "HMG-25"
+      }
+    ]
+  },
+  "schema": {
+    "mqtt_uri": "str?",
+    "inverse_forwarding": "bool?",
+    "username": "str?",
+    "password": "password?",
+    "devices": [
+      {
+        "device_id": "str",
+        "mac": "str",
+        "type": "str",
+        "inverse_forwarding": "bool?"
+      }
+    ]
+  }
+}
