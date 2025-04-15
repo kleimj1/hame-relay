@@ -50,7 +50,8 @@ jobs:
           file: Dockerfile.dev
           platforms: linux/arm64,linux/amd64
           push: true
-          provenance: false  # optional: verhindert attestation-layer
+          provenance: false  # verhindert attestation layer
+          sbom: false        # verhindert Software Bill of Materials Layer
           tags: |
             ghcr.io/kleimj1/hame-relay-addon:${{ steps.meta.outputs.VERSION }}
             ghcr.io/kleimj1/hame-relay-addon:latest
