@@ -51,16 +51,28 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/}
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Build and Push Multiarch Docker Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile.dev
-          platforms: linux/arm64,linux/amd64
-          push: true
-          tags: |
+      - name: Build and Push
+        run: |
+          # Build and push arch-specific images first
+          docker buildx build \
+            --platform linux/arm64 \
+            -t ghcr.io/kleimj1/hame-relay-addon/aarch64:${{ steps.meta.outputs.VERSION }} \
+            -f Dockerfile.dev \
+            --push \
+            .
+
+          docker buildx build \
+            --platform linux/amd64 \
+            -t ghcr.io/kleimj1/hame-relay-addon/amd64:${{ steps.meta.outputs.VERSION }} \
+            -f Dockerfile.dev \
+            --push \
+            .
+
+          # Then create the multi-arch manifest
+          docker manifest create \
+            ghcr.io/kleimj1/hame-relay-addon:${{ steps.meta.outputs.VERSION }} \
+            --amend ghcr.io/kleimj1/hame-relay-addon/aarch64:${{ steps.meta.outputs.VERSION }} \
+            --amend ghcr.io/kleimj1/hame-relay-addon/amd64:${{ steps.meta.outputs.VERSION }}
+
+          docker manifest push \
             ghcr.io/kleimj1/hame-relay-addon:${{ steps.meta.outputs.VERSION }}
-            ghcr.io/kleimj1/hame-relay-addon:latest
-          outputs: |
-            type=registry,oci-mediatypes=true,name=ghcr.io/kleimj1/hame-relay-addon/aarch64:${{ steps.meta.outputs.VERSION }}
-            type=registry,oci-mediatypes=true,name=ghcr.io/kleimj1/hame-relay-addon/amd64:${{ steps.meta.outputs.VERSION }}
